@@ -59,21 +59,37 @@ const getPaintingsByGalleryId = (req, resp) => {
     });
 }
 
+const getPaintingsByArtistId = (req, resp) => {
+    const fileName = "paintings-nested.json";
+    const jsonPath = path.join(__dirname, "data", fileName);
+
+    fs.readFile(jsonPath, (err, contents) => {
+        if (err){
+            resp.status(500).send("Error reading data file.")
+        } else {
+            const paintings = JSON.parse(contents);
+            const matches = paintings.filter(p => p.artist.artistID == req.params.id);
+
+            if (matches.length > 0){
+                resp.json(matches);
+            } else {
+                resp.status(404).json({message: "No paintings by this artist have been found :("});
+            }
+        }
+    });
+}
+
 // --- Artist Handler Functions ---
 
 
 
 // --- Route Registration ---
-
-// registering the routes
-// Note: getAllPaintings passed as a variable
 app.get("/api/paintings", getAllPaintings);
 app.get("/api/paintings/:id", getPaintingById); // :id means that "id is a parameter". eg "invocation" http://localhost:3000/api/paintings/441
 app.get("/api/paintings/gallery/:id", getPaintingsByGalleryId);
+app.get("/api/paintings/artist/:id", getPaintingsByArtistId);
 
 // --- Server Spin-up ---
-
-// starting up the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

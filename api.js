@@ -80,7 +80,7 @@ const getPaintingsByArtistId = (req, resp) => {
 }
 
 const getPaintingsByYearRange = (req, resp) => {
-    const fileName = "paintings-nested.json"
+    const fileName = "paintings-nested.json";
     const jsonPath = path.join(__dirname, "data", fileName);
 
     fs.readFile(jsonPath, (err, content) => {
@@ -99,6 +99,52 @@ const getPaintingsByYearRange = (req, resp) => {
     });
 }
 
+const getPaintingsBySubstring = (req, resp) => {
+    const fileName = "paintings-nested.json";
+    const jsonPath = path.join(__dirname, "data", fileName);
+
+    fs.readFile(jsonPath, (err, content) => {
+        if (err) {
+            resp.status(500).send("Error reading data file.");
+        } else {
+            const paintings = JSON.parse(content);
+            const matches = paintings.filter(p => p.title.toLowerCase().includes(req.params.text.toLowerCase()));
+
+            if (matches.length > 0){
+                resp.json(matches);
+            } else {
+                resp.status(400).json({message: `No paintings with the substring '${req.params.text}' in the title :(`})
+            }
+        }
+    })
+}
+
+// ERROR HERE
+const getPaintingsByColor = (req, resp) => {
+    const fileName = "paintings-nested.json";
+    const jsonPath = path.join(__dirname, "data", fileName);
+
+    fs.readFile(jsonPath, (err, content) => {
+        if (err) {
+            resp.status(500).send("Error reading data file.");
+        } else {
+            const paintings = JSON.parse(content);
+            const searchTerm = req.params.name.toLowerCase();
+
+            const matches = paintings.filter(p => {
+                const colors = p.details.annotation.dominantColors;
+                return colors.some(c => c.name.toLowerCase().includes(searchTerm));
+            });
+
+            if (matches.length > 0){
+                resp.json(matches);
+            } else {
+                resp.status(400).json({message: `No paintings with the substring '${req.params.text}' in the title :(`})
+            }
+        }
+    })
+}
+
 // --- Artist Handler Functions ---
 
 
@@ -109,6 +155,8 @@ app.get("/api/paintings/:id", getPaintingById); // :id means that "id is a param
 app.get("/api/paintings/gallery/:id", getPaintingsByGalleryId);
 app.get("/api/paintings/artist/:id", getPaintingsByArtistId);
 app.get("/api/paintings/year/:min/:max", getPaintingsByYearRange);
+app.get("/api/paintings/title/:text", getPaintingsBySubstring);
+app.get("/api/paintings/color/:name", getPaintingsByColor);
 
 // --- Server Spin-up ---
 const port = process.env.PORT || 3000;

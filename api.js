@@ -119,7 +119,6 @@ const getPaintingsBySubstring = (req, resp) => {
     })
 }
 
-// ERROR HERE
 const getPaintingsByColor = (req, resp) => {
     const fileName = "paintings-nested.json";
     const jsonPath = path.join(__dirname, "data", fileName);
@@ -146,8 +145,72 @@ const getPaintingsByColor = (req, resp) => {
 }
 
 // --- Artist Handler Functions ---
+const getArtists = (req, resp) =>{
+    const fileName = "artists.json";
+    const jsonPath = path.join(__dirname, "data", fileName);
 
+    fs.readFile(jsonPath, (err, content) => {
+        if (err){
+            resp.status(500).send("Error reading data file");
+        } else {
+            resp.json(JSON.parse(content));
+        }
+    })
+}
 
+const getArtistsByCountry = (req, resp) => {
+    const fileName = "artists.json";
+    const jsonPath = path.join(__dirname, "data", fileName);
+
+    fs.readFile(jsonPath, (err, content) => {
+        if (err){
+            resp.status(500).send("Error reading data file");
+        } else {
+            const artists = JSON.parse(content);
+            const matches = artists.filter(p => p.Nationality.toLowerCase() == req.params.country.toLowerCase());
+            
+            if (matches.length > 0){
+                resp.json(matches);
+            } else {
+                resp.status(400).json({message: `There are no artists from the country ${req.params.country}`});
+            }
+        }
+    })
+}
+
+// --- Gallery Handler Functions ---
+const getGalleries = (req, resp) =>{
+    const fileName = "galleries.json";
+    const jsonPath = path.join(__dirname, "data", fileName);
+
+    fs.readFile(jsonPath, (err, content) => {
+        if (err){
+            resp.status(500).send("Error reading data file");
+        } else {
+            resp.json(JSON.parse(content));
+        }
+    })
+}
+
+const getGalleriesByCountry = (req, resp) => {
+    const fileName = "galleries.json";
+    const jsonPath = path.join(__dirname, "data", fileName);
+
+    fs.readFile(jsonPath, (err, content) => {
+        if (err){
+            resp.status(500).send("Error reading data file");
+        } else {
+            const galleries = JSON.parse(content);
+            const matches = galleries.filter(p => p.GalleryCountry.toLowerCase() == req.params.country.toLowerCase());
+            
+            if (matches.length > 0){
+                resp.json(matches);
+            } else {
+                resp.status(400).json({message: `There are no galleries from the country ${req.params.country}`});
+            }
+        }
+    })
+} 
 
 // --- Route Registration ---
 app.get("/api/paintings", getAllPaintings);
@@ -157,6 +220,10 @@ app.get("/api/paintings/artist/:id", getPaintingsByArtistId);
 app.get("/api/paintings/year/:min/:max", getPaintingsByYearRange);
 app.get("/api/paintings/title/:text", getPaintingsBySubstring);
 app.get("/api/paintings/color/:name", getPaintingsByColor);
+app.get("/api/artists", getArtists);
+app.get("/api/artists/:country", getArtistsByCountry);
+app.get("/api/galleries", getGalleries);
+app.get("/api/galleries/:country", getGalleriesByCountry);
 
 // --- Server Spin-up ---
 const port = process.env.PORT || 3000;
